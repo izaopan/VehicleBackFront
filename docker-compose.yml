@@ -1,0 +1,76 @@
+version: "3.1"
+services:
+  eureka-server:
+    image: eureka-server-image2
+    build:
+      context: ./vehicle-monitor-system/eureka-server/
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: eureka-server-1.0.0-SNAPSHOT.jar
+    ports:
+    - "8761:8761"
+  vehicle-monitor:
+    image: vehicle-monitor-image2
+    build: 
+      context: ./vehicle-monitor-system/vehicle-monitor/
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE : vehicle-monitor-1.0.0-SNAPSHOT.jar
+    ports:
+    - "8081:8081"
+#    - "8082-8085:8081"
+    depends_on:
+    - eureka-server
+    - zuul-server
+    links:
+    - eureka-server
+  vehicle-monitor2:
+    image: vehicle-monitor-image2
+    build:
+      context: ./vehicle-monitor-system/vehicle-monitor/
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: vehicle-monitor-1.0.0-SNAPSHOT.jar
+    ports:
+    - "8082:8081"
+    #    - "8082-8085:8081"
+    depends_on:
+    - eureka-server
+    - zuul-server
+    links:
+    - eureka-server
+  zuul-server:
+    image: zuul-server-image2
+    build:
+      context: ./vehicle-monitor-system/zuul-server/
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE : zuul-server-1.0.0-SNAPSHOT.jar
+    ports:
+    - "8762:8762"
+    depends_on:
+    - eureka-server
+    links:
+    - eureka-server
+  data-generator:
+    image: data-generator-image2
+    build:
+      context: ./vehicle-monitor-system/data-generator/
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE : data-generator-1.0-SNAPSHOT.jar
+    depends_on:
+    - vehicle-monitor
+    links:
+    - zuul-server
+  frontend:
+    image: frontend-image2
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+    - "8000:80"
+    depends_on:
+    - vehicle-monitor
+    links:
+    - zuul-server
